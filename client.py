@@ -14,7 +14,7 @@ def start_client():
     pub_key = load_pem_public_key(pub_key, backend=default_backend())
     
     encrypted_password = pub_key.encrypt(
-        b"lel",
+        b"somecryptographicallysecurepassword",
         padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
