@@ -1,13 +1,14 @@
 import socket
 import os
 import time
-import dill as pickle
+import pickle
 import threading
+from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-import cryptography.hazmat.primitives.serialization as serialization
-
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 def handle_client(client_socket):
     priv_key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
     pub_key = priv_key.public_key()
@@ -22,6 +23,25 @@ def handle_client(client_socket):
         )
     ).decode('utf-8') == "somecryptographicallysecurepassword":
         client_socket.send("PASS".encode('utf-8'))
+        res=client_socket.recv(1024).decode('utf-8')
+        if res=="GREAT":
+            client_socket.send("KEY".encode('utf-8'))
+            client_pub_key=load_pem_public_key(client_socket.recv(1024),default_backend())
+            symmetrickey=Fernet.generate_key()
+            fernet=Fernet(symmetrickey)
+            encrypted_key = client_pub_key.encrypt(
+                symmetrickey,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None
+                )
+            )
+            client_socket.send(encrypted_key)
+            res=client_socket.recv(4096)
+            print(res,symmetrickey)
+            if res==symmetrickey:
+                print("success")
         while True:
             data = client_socket.recv(1024)
             if not data:
@@ -34,7 +54,6 @@ def handle_client(client_socket):
         client_socket.close()
 
 def GrabData(client: list) -> str:
-    global dir, filedict
     if client[1] == "grab":
         if client[2] in filedict:
             return filedict[client[2]]
