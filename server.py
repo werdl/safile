@@ -28,7 +28,7 @@ def handle_client(client_socket):
             client_socket.send("KEY".encode('utf-8'))
             client_pub_key=load_pem_public_key(client_socket.recv(1024),default_backend())
             symmetrickey=Fernet.generate_key()
-            fernet=Fernet(symmetrickey)
+            f=Fernet(symmetrickey)
             encrypted_key = client_pub_key.encrypt(
                 symmetrickey,
                 padding.OAEP(
@@ -38,16 +38,15 @@ def handle_client(client_socket):
                 )
             )
             client_socket.send(encrypted_key)
-            res=client_socket.recv(4096)
-            print(res,symmetrickey)
-            if res==symmetrickey:
-                print("success")
+            res=client_socket.recv(1024)
+            if res.decode('utf-8')=="DONE":
+                print("Connection established")
         while True:
             data = client_socket.recv(1024)
             if not data:
                 break
-            client = list(pickle.loads(data))
-            client_socket.send(GrabData(client).encode('utf-8'))
+            client = list(pickle.loads(f.decrypt(data)))
+            client_socket.send(f.encrypt(bytes(GrabData(client),'utf-8')))
         client_socket.close()
     else:
         client_socket.send("FAIL".encode('utf-8'))
@@ -66,6 +65,23 @@ def GrabData(client: list) -> str:
     elif client[1] == "del":
         os.remove(dir + "/" + client[2])
         return "Gone"
+    elif client[1]=="help":
+        return """
+~~~~~~~~~~~~~~~~~~~
+SaFile server help:
+~~~~~~~~~~~~~~~~~~~
+- grab <file>
+returns content of <file>
+
+- change <file> <data>
+writes <data> to <file>, can create file
+
+- del <file>
+deletes file
+
+- help
+shows this menu
+"""
     else:
         return f"This server doesn't recognise `{' '.join(client[1:])}` as a command."
 
@@ -97,7 +113,11 @@ def start_server():
                     actual = ""
                     for x in contents:
                         actual += x
-                filedict[file] = actual
+                filedict[file] = actual 
+            copy=dict(filedict)
+            for key in copy:
+                if key not in filelist:
+                    del filedict[key]
             print(filedict)
 
     listthread = threading.Thread(target=list)

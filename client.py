@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+from cryptography.fernet import Fernet
 
 def start_client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,14 +44,15 @@ def start_client():
             label=None
         )
     )
-    print(plainresponse)
-    client_socket.send(plainresponse)
+    client_socket.send("DONE".encode('utf-8'))
+    f = Fernet(plainresponse)
     while True:
         message = input("Enter a command: ")
         tosend = message.split(" ")
         tosend.insert(0, "password")
-        client_socket.send(pickle.dumps(tosend))
-        response = client_socket.recv(1024).decode('utf-8')
+        client_socket.send(f.encrypt(pickle.dumps(tosend)))
+        response = client_socket.recv(1024)
+        response=(f.decrypt(response)).decode('utf-8')
         print('Response from server:', response)
     client_socket.close()
 
