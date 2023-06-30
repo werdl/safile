@@ -27,7 +27,7 @@ def start_client():
     print('Response from server:', response)
     if response!="PASS":
         sys.exit(-1)
-    client_socket.send("GREAT".encode('utf-8'))
+    client_socket.send("GREAT_I_AM_CLIENT".encode('utf-8'))
     my_priv_key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
     my_pub_key = my_priv_key.public_key()
     if client_socket.recv(1024).decode('utf-8')!="KEY":

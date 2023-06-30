@@ -24,7 +24,7 @@ def handle_client(client_socket):
     ).decode('utf-8') == "somecryptographicallysecurepassword":
         client_socket.send("PASS".encode('utf-8'))
         res=client_socket.recv(1024).decode('utf-8')
-        if res=="GREAT":
+        if res=="GREAT_I_AM_CLIENT":
             client_socket.send("KEY".encode('utf-8'))
             client_pub_key=load_pem_public_key(client_socket.recv(1024),default_backend())
             symmetrickey=Fernet.generate_key()
