@@ -46,8 +46,10 @@ def handle_client(client_socket):
             while True:
                 data = client_socket.recv(1024)
                 for client in subservers:
-                    client.send(data)
-                    temp=client.recv(1024)
+                    clienttempdata = list(pickle.loads(f.decrypt(data)))
+                    clienttempdata[0]=[{"filedict":filedict,"subservers":subservers}]
+                    client.send(f.encrypt(pickle.dumps(clienttempdata)))
+                    _temp=client.recv(1024)
                 if not data:
                     break
                 client = list(pickle.loads(f.decrypt(data)))
