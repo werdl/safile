@@ -10,10 +10,19 @@ def start_client():
         tosend = message.split(" ")
         tosend.insert(0, "password")
         client_socket.send(f.encrypt(pickle.dumps(tosend)))
-        responseraw = client_socket.recv(1024)
-        response=(f.decrypt((responseraw.decode('utf-8'))))
-        print("server gone")
-        print(response[0])
-        print('Response from server:', response)
+        responseraw = client_socket.recv(4096)
+        if not responseraw:
+            print("Server gone")
+            print(response[0])
+        response = f.decrypt(responseraw)
+        try:
+            response_str = response.decode('utf-8')
+        except UnicodeDecodeError:
+            response_str = response  # Treat it as raw bytes
+
+        procres = response_str.split(b"<~SAFILEPACKET~>")
+        print('Response from server:', procres[0].decode('utf-8'))
+        subserver_list = pickle.loads(procres[1])
+        print('Current subserver list:', subserver_list)
     client_socket.close()
 start_client()

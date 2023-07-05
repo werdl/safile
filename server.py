@@ -47,18 +47,19 @@ def handle_client(client_socket):
                 data = client_socket.recv(1024)
                 for client in subservers:
                     clienttempdata = list(pickle.loads(f.decrypt(data)))
-                    pickledsubs=[]
+                    pickledsubs=set()
                     for sub in subservers:
                         host, port = sub.getpeername()
-                        pickledsubs+={"host":host,"port":port}
-                    clienttempdata[0]={"filedict":filedict,"subservers":pickledsubs}
+                        pickledsubs.add(tuple({"host": host, "port": port}.items()))
+                    pickledsubs=set(pickledsubs)
+                    clienttempdata[0]=[filedict,pickledsubs]
                     
                     client.send(f.encrypt(pickle.dumps(clienttempdata)))
                     _temp=client.recv(1024)
                 if not data:
                     break
                 client = list(pickle.loads(f.decrypt(data)))
-                client_socket.send(f.encrypt((handshake.GrabData(client,filedict)).encode('utf-8')))
+                client_socket.send(f.encrypt(((handshake.GrabData(client,filedict)).encode('utf-8')+"<~SAFILEPACKET~>".encode('utf-8')+(pickle.dumps({"filedict":filedict,"subservers":pickledsubs})))))
             client_socket.close()
         elif res=="GREAT_I_AM_SUB_SERVER":
             client_socket.send("KEY".encode('utf-8'))
