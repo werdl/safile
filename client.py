@@ -23,6 +23,6 @@ def start_client():
         procres = response_str.split(b"<~SAFILEPACKET~>")
         print('Response from server:', procres[0].decode('utf-8'))
         subserver_list = pickle.loads(procres[1])
-        print('Current subserver list:', subserver_list)
+        print('Current subserver list:', dict(subserver_list["subservers"]))
     client_socket.close()
 start_client()
