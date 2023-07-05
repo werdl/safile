@@ -11,7 +11,7 @@ def start_client():
         tosend.insert(0, "password")
         client_socket.send(f.encrypt(pickle.dumps(tosend)))
         responseraw = client_socket.recv(1024)
-        response=(f.decrypt(pickle.loads(responseraw)))[1]
+        response=(f.decrypt((responseraw.decode('utf-8'))))
         print("server gone")
         print(response[0])
         print('Response from server:', response)

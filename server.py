@@ -58,7 +58,7 @@ def handle_client(client_socket):
                 if not data:
                     break
                 client = list(pickle.loads(f.decrypt(data)))
-                client_socket.send(f.encrypt(pickle.dumps([{"filedict":filedict,"subservers":pickledsubs},handshake.GrabData(client,filedict)])))
+                client_socket.send(f.encrypt((handshake.GrabData(client,filedict)).encode('utf-8')))
             client_socket.close()
         elif res=="GREAT_I_AM_SUB_SERVER":
             client_socket.send("KEY".encode('utf-8'))
