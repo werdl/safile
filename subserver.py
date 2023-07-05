@@ -14,11 +14,14 @@ filedict={}
 def connect(ip,port):
     client_socket=""
     f=""
-    (client_socket,f)=handshake.handshake(client_socket,f,"GREAT_I_AM_SUB_SERVER")
+    (client_socket,f)=handshake.handshake(client_socket,f,'localhost',12345,"GREAT_I_AM_SUB_SERVER")
     while True:
         data = client_socket.recv(1024)
         if not data:
-            break
+            print("Uh-oh server gone")
+            import server
+            server.startfs("test",True,filedict)
+            server.start_server()
         client = list(pickle.loads(f.decrypt(data)))
         filedict=client[0]["filedict"]
         client_socket.send(f.encrypt(bytes(handshake.GrabData(client,filedict),'utf-8')))

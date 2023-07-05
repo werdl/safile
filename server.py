@@ -47,13 +47,18 @@ def handle_client(client_socket):
                 data = client_socket.recv(1024)
                 for client in subservers:
                     clienttempdata = list(pickle.loads(f.decrypt(data)))
-                    clienttempdata[0]=[{"filedict":filedict,"subservers":subservers}]
+                    pickledsubs=[]
+                    for sub in subservers:
+                        host, port = sub.getpeername()
+                        pickledsubs+={"host":host,"port":port}
+                    clienttempdata[0]={"filedict":filedict,"subservers":pickledsubs}
+                    
                     client.send(f.encrypt(pickle.dumps(clienttempdata)))
                     _temp=client.recv(1024)
                 if not data:
                     break
                 client = list(pickle.loads(f.decrypt(data)))
-                client_socket.send(f.encrypt(bytes(handshake.GrabData(client,filedict),'utf-8')))
+                client_socket.send(f.encrypt(pickle.dumps([{"filedict":filedict,"subservers":pickledsubs},handshake.GrabData(client,filedict)])))
             client_socket.close()
         elif res=="GREAT_I_AM_SUB_SERVER":
             client_socket.send("KEY".encode('utf-8'))
@@ -81,39 +86,43 @@ def handle_client(client_socket):
 filelist = []
 dir = ""
 filedict = {}
-
-def startfs(dirr):
+checkfiles=True
+def startfs(dirr,starting=None,filedictt=None):
     global filelist, dir, filedict
+    if starting!=None:
+        checkfiles=False
+        filedict=filedictt
     dir = dirr
 
-def start_server():
+def start_server(ip='localhost',port=12345):
     global filelist
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-    server_address = ('localhost', 12345)
+    server_address = (ip, port)
     server_socket.bind(server_address)
     server_socket.listen(8)
 
-    def list():
+    def listl():
         global filelist, filedict
         while True:
             time.sleep(1)
-            filelist = os.listdir(dir)
-            for file in filelist:
-                with open(dir + "/" + file) as f:
-                    contents = f.readlines()
-                    actual = ""
-                    for x in contents:
-                        actual += x
-                filedict[file] = actual 
-            copy=dict(filedict)
-            for key in copy:
-                if key not in filelist:
-                    del filedict[key]
+            if checkfiles:
+                filelist = os.listdir(dir)
+                for file in filelist:
+                    with open(dir + "/" + file) as f:
+                        contents = f.readlines()
+                        actual = ""
+                        for x in contents:
+                            actual += x
+                    filedict[file] = actual 
+                copy=dict(filedict)
+                for key in copy:
+                    if key not in filelist:
+                        del filedict[key]
             print(filedict)
 
-    listthread = threading.Thread(target=list)
+    listthread = threading.Thread(target=listl)
     listthread.start()
 
     while True:
