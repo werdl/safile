@@ -17,7 +17,7 @@ filedict = {}
 def connect(ip, port):
     client_socket = ""
     f = ""
-    toprint = []
+    toprint = ["emptiness"]
     (client_socket, f) = handshake.handshake(client_socket, f, 'localhost', 12345, "GREAT_I_AM_SUB_SERVER")
     while True:
         data = client_socket.recv(1024)
@@ -39,7 +39,7 @@ def connect(ip, port):
         filedict = dict(client[0][0])
         print(filedict)
         client_socket.send(f.encrypt(bytes(handshake.GrabData(client, filedict), 'utf-8')))
-
+        toprint=[]
         for x in client[0][1]:
                 host = [value for key, value in x if key=='host'][0]
                 ports = [value for key, value in x if key=='port'][0]
