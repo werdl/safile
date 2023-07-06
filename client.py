@@ -1,4 +1,4 @@
-import pickle,time,sys
+import pickle,time
 import handshake
 
 def start_client(prevjustent: bool,pev: str):
@@ -8,7 +8,9 @@ def start_client(prevjustent: bool,pev: str):
     toprint = []
     prevjustsent=prevjustent
     prev=pev
+
     (client_socket, f) = handshake.handshake(client_socket, f, 'localhost', 12345)
+    
     while True:
         if not prevjustsent:
             message = input("Enter a command: ")
@@ -22,10 +24,8 @@ def start_client(prevjustent: bool,pev: str):
         
         responseraw = client_socket.recv(4096)
         if not responseraw:
-            if "-i" in sys.argv or "--info" in sys.argv:
-                print("Server gone")
-                print(f"With the server gone, control has been delegated to the first subserver at {toprint[0]}. Redirecting control there...")
-            time.sleep(2)
+            print("Server gone")
+            print(f"With the server gone, control has been delegated to the first subserver at {toprint[0]}. Redirecting control there...")
             start_client(True,message)
             # client_socket.close()
             # info = toprint[0].split(":")
@@ -41,22 +41,26 @@ def start_client(prevjustent: bool,pev: str):
             response_str = response  # Treat it as raw bytes
         procres = response_str.split(b"<~SAFILEPACKET~>")
         print('Response from server:', procres[0].decode('utf-8'))
+        
         subserver_list = pickle.loads(procres[1])
         toprint = []
-        if "-i" in sys.argv or "--info" in sys.argv:
-            if subserver_list:
-                subservers = subserver_list["subservers"]
-                if subservers:
-                    print("Current subserver list:")
-                    for subserv in subservers:
-                        host = [value for key, value in subserv if key == 'host'][0]
-                        port = [value for key, value in subserv if key == 'port'][0]
-                        subserv_str = f"{host}:{port}"
-                        toprint.append(subserv_str)
-                        print(subserv_str)
-                else:
-                    print("No subservers available.")
+        
+        if subserver_list:
+            subservers = subserver_list["subservers"]
+            
+            if subservers:
+                print("Current subserver list:")
+                for subserv in subservers:
+                    host = [value for key, value in subserv if key == 'host'][0]
+                    port = [value for key, value in subserv if key == 'port'][0]
+                    subserv_str = f"{host}:{port}"
+                    toprint.append(subserv_str)
+                    print(subserv_str)
             else:
-                print("No subserver list available.")
+                print("No subservers available.")
+        else:
+            print("No subserver list available.")
+    
     client_socket.close()
+
 start_client(False,"")
