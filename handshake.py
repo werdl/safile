@@ -1,13 +1,15 @@
-import socket,sys
+import socket,sys,time
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from cryptography.fernet import Fernet
-def handshake(client_socket,f,ip,port,msg: str="GREAT_I_AM_CLIENT"):
+def handshake(client_socket,f,ip,port,msg: str="GREAT_I_AM_CLIENT",delay=0):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (ip,port)
+    print(server_address)
+    time.sleep(delay)
     client_socket.connect(server_address)
     pub_key = client_socket.recv(1024)
     pub_key = load_pem_public_key(pub_key, backend=default_backend())

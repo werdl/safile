@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 import handshake
-subservers=set()
+subservers=[]
 symmetrickey=Fernet.generate_key()
 def handle_client(client_socket):
     priv_key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
@@ -52,6 +52,7 @@ def handle_client(client_socket):
                         host, port = sub.getpeername()
                         pickledsubs.add(tuple({"host": host, "port": port}.items()))
                     pickledsubs=set(pickledsubs)
+                    print(pickledsubs)
                     clienttempdata[0]=[filedict,pickledsubs]
                     
                     client.send(f.encrypt(pickle.dumps(clienttempdata)))
@@ -77,7 +78,7 @@ def handle_client(client_socket):
             res=client_socket.recv(1024)
             if res.decode('utf-8')=="DONE":
                 print(f"Connection established with sub server")
-            subservers.add(client_socket)
+            subservers.append(client_socket)
 
     else:
         client_socket.send("FAIL".encode('utf-8'))
@@ -95,12 +96,12 @@ def startfs(dirr,starting=None,filedictt=None):
         filedict=filedictt
     dir = dirr
 
-def start_server(ip='localhost',port=12345):
+def start_server(host='localhost'):
     global filelist
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-    server_address = (ip, port)
+    server_address = (host, 12345)
     server_socket.bind(server_address)
     server_socket.listen(8)
 
