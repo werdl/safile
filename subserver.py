@@ -11,9 +11,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 import handshake
-
 filedict = {}
-
 def connect(ip, port):
     client_socket = ""
     f = ""
@@ -32,8 +30,8 @@ def connect(ip, port):
                 server.start_server()
             else:
                 print("We have lost the main server, but we aren't being promoted. Restarting this instance to point to the main.")
-                info = toprint[0].split(":")
                 time.sleep(2)
+                info = toprint[0].split(":")
                 connect(info[0], info[1])
         client = list(pickle.loads(f.decrypt(data)))
         filedict = dict(client[0][0])
@@ -45,5 +43,4 @@ def connect(ip, port):
                 ports = [value for key, value in x if key=='port'][0]
                 toprint.append(f"{host}:{ports}")
         print(f"{client[1:]}, responded to server with {handshake.GrabData(client, filedict)} (even though it isn't listening). Btw, here are all the servers: {toprint}")
-        
 connect(sys.argv[1], sys.argv[2])

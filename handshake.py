@@ -13,7 +13,6 @@ def handshake(client_socket,f,ip,port,msg: str="GREAT_I_AM_CLIENT",delay=0):
     client_socket.connect(server_address)
     pub_key = client_socket.recv(1024)
     pub_key = load_pem_public_key(pub_key, backend=default_backend())
-    
     encrypted_password = pub_key.encrypt(
         b"somecryptographicallysecurepassword",
         padding.OAEP(
