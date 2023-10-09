@@ -1,4 +1,4 @@
-import pickle,time
+import pickle,time,json
 import handshake
 
 def start_client(prevjustent: bool,pev: str):
@@ -9,7 +9,10 @@ def start_client(prevjustent: bool,pev: str):
     prevjustsent=prevjustent
     prev=pev
 
-    (client_socket, f) = handshake.handshake(client_socket, f, 'localhost', 12345)
+    if os.path.isfile("config.json"):
+        with open("config.json","r") as f:
+            dict=json.load(f)
+    (client_socket, f) = handshake.handshake(client_socket, f, dict["server"]["host"], dict["server"]["port"])
     
     while True:
         if not prevjustsent:

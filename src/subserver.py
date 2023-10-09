@@ -4,6 +4,7 @@ import os
 import time
 import pickle
 import threading
+import json
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
@@ -14,11 +15,15 @@ import handshake
 
 filedict = {}
 
-def connect(ip, port):
+def connect():
+    global filedict
     client_socket = ""
     f = ""
     toprint = ["emptiness"]
-    (client_socket, f) = handshake.handshake(client_socket, f, 'localhost', 12345, "GREAT_I_AM_SUB_SERVER")
+    if os.path.isfile("config.json"):
+        with open("config.json","r") as f:
+            dict=json.load(f)
+    (client_socket, f) = handshake.handshake(client_socket, f, dict["server"]["host"], dict["server"]["port"], "GREAT_I_AM_SUB_SERVER")
     while True:
         data = client_socket.recv(1024)
         if not data:
@@ -46,4 +51,4 @@ def connect(ip, port):
                 toprint.append(f"{host}:{ports}")
         print(f"{client[1:]}, responded to server with {handshake.GrabData(client, filedict)} (even though it isn't listening). Btw, here are all the servers: {toprint}")
         
-connect(sys.argv[1], sys.argv[2])
+connect()

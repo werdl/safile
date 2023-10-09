@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 import handshake
+import json
 subservers=[]
 symmetrickey=Fernet.generate_key()
 def handle_client(client_socket):
@@ -96,12 +97,15 @@ def startfs(dirr,starting=None,filedictt=None):
         filedict=filedictt
     dir = dirr
 
-def start_server(host='localhost'):
+def start_server():
     global filelist
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-    server_address = (host, 12345)
+    if os.path.isfile("config.json"):
+        with open("config.json","r") as f:
+            dictt=json.load(f)
+    server_address = (dictt["server"]["host"], dictt["server"]["port"])
     server_socket.bind(server_address)
     server_socket.listen(8)
 
@@ -122,8 +126,7 @@ def start_server(host='localhost'):
                 for key in copy:
                     if key not in filelist:
                         del filedict[key]
-            print(filedict)
-
+            print()
     listthread = threading.Thread(target=listl)
     listthread.start()
 
@@ -131,6 +134,8 @@ def start_server(host='localhost'):
         client_socket, client_address = server_socket.accept()
         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
         client_thread.start()
-
-startfs("test")
+if os.path.isfile("config.json"):
+    with open("config.json","r") as f:
+        dictt=json.load(f)
+startfs(dictt["server"]["dir"])
 start_server()
